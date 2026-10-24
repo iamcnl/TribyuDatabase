@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tribyu-database",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-06-01",
+  "observability": {
+    "enabled": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "discord-data",
+      "database_id": "YOUR-D1-DATABASE-ID"
+    }
+  ]
+}

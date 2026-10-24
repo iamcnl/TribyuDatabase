@@ -1,0 +1,3 @@
+# Secret read by the ingestion (/log-*) routes. Leave unset: ingestion is disabled.
+# For deployed Workers use `wrangler secret put USER_TOKEN`, never wrangler.jsonc "vars".
+USER_TOKEN=
