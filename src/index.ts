@@ -81,6 +81,13 @@ export default {
       const url = new URL(request.url);
       let response: Response;
 
+      if (url.pathname.startsWith('/log-') && !env.USER_TOKEN) {
+        return new Response('Ingestion is disabled: USER_TOKEN is not set.', {
+          headers: { 'Content-Type': 'text/plain', ...corsHeaders },
+          status: 503,
+        });
+      }
+
       if (url.pathname === '/log-data') {
         const values = await getAndWritePrizePoolAndHashrate(env);
         response = new Response(
