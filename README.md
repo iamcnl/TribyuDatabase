@@ -29,13 +29,21 @@ TypeScript, Cloudflare Workers, Cloudflare D1 (SQLite), Wrangler.
 ```bash
 npm install
 cp .dev.vars.example .dev.vars    # leave USER_TOKEN empty
-npx wrangler d1 create discord-data   # put the returned id into wrangler.jsonc
+npx wrangler d1 execute discord-data --local --file=schema.sql
 npm run dev
 ```
 
-Tables are created on demand by the worker code. The original data snapshot is not included in this repository.
+`schema.sql` creates the five (empty) tables. The read routes return `500 no such table` until it has been applied. The original data snapshot is not included in this repository; load your own with `wrangler d1 execute discord-data --local --file=your-data.sql`.
+
+`/log-*` routes return `503` unless `USER_TOKEN` is set. They authenticate to Discord with a user token, which Discord's terms do not allow for automation; they are kept only to document how the data was collected.
+
+## Tests
+
+```bash
+npm test
+```
 
 ## Notes
 
 - Built quickly in 2025 with heavy LLM assistance and cleaned up for archival.
-- The `test/` folder is unmodified Wrangler template boilerplate and does not match the worker's behavior.
+- `current_metrics_schema.sql` is superseded by `schema.sql`.
