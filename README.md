@@ -5,6 +5,10 @@ Cloudflare Worker + D1 database that served the data for [Tribyu Tracker](https:
 > **Project status: archived.**
 > Tribyu was cancelled in 2025 and data ingestion has been switched off. The Worker still serves the stored data, which is a frozen snapshot; nothing new is collected, and the deployment may be taken down at any time.
 
+## About Tribyu
+
+Tribyu (formerly Satlantis) was a Bitcoin-rewards game where players' in-game hashrate earned them a share of an hourly sats payout from a prize pool. Between February and September 2025, this Worker collected the game's public stats (prize pool, hashrate, payouts, auction house) from Discord into D1, as the backend for Tribyu Tracker.
+
 ## API
 
 All routes are `GET` and return JSON with open CORS.
