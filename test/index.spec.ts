@@ -1,24 +1,40 @@
-import { env, createExecutionContext, waitOnExecutionContext, SELF } from 'cloudflare:test';
-import { describe, it, expect } from 'vitest';
-import worker from '../src/index';
+import { env, SELF } from 'cloudflare:test';
+import { beforeAll, describe, expect, it } from 'vitest';
+import schema from '../schema.sql?raw';
 
-// For now, you'll need to do something like this to get a correctly-typed
-// `Request` to pass to `worker.fetch()`.
-const IncomingRequest = Request<unknown, IncomingRequestCfProperties>;
+beforeAll(async () => {
+	const statements = schema.split(';').map((s) => s.trim()).filter(Boolean);
+	for (const statement of statements) {
+		await env.DB.prepare(statement).run();
+	}
+	await env.DB.prepare(
+		"INSERT OR REPLACE INTO channel_data (prize_pool, hashrate, timestamp) VALUES ('5,000,000', '1,200', '2025-09-10 12:05:00 UTC')"
+	).run();
+});
 
-describe('Hello World worker', () => {
-	it('responds with Hello World! (unit style)', async () => {
-		const request = new IncomingRequest('http://example.com');
-		// Create an empty context to pass to `worker.fetch()`.
-		const ctx = createExecutionContext();
-		const response = await worker.fetch(request, env, ctx);
-		// Wait for all `Promise`s passed to `ctx.waitUntil()` to settle before running test assertions
-		await waitOnExecutionContext(ctx);
-		expect(await response.text()).toMatchInlineSnapshot(`"Hello World!"`);
+describe('read API', () => {
+	it('returns channel data as JSON with open CORS', async () => {
+		const response = await SELF.fetch('https://example.com/get-channel-data');
+		expect(response.status).toBe(200);
+		expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
+		const rows = (await response.json()) as { prize_pool: string }[];
+		expect(rows[0].prize_pool).toBe('5,000,000');
 	});
 
-	it('responds with Hello World! (integration style)', async () => {
-		const response = await SELF.fetch('https://example.com');
-		expect(await response.text()).toMatchInlineSnapshot(`"Hello World!"`);
+	it('returns an empty list for an empty table', async () => {
+		const response = await SELF.fetch('https://example.com/get-payment-data');
+		expect(await response.json()).toEqual([]);
+	});
+
+	it('rejects non-GET methods', async () => {
+		const response = await SELF.fetch('https://example.com/get-channel-data', { method: 'POST' });
+		expect(response.status).toBe(405);
+	});
+});
+
+describe('ingestion', () => {
+	it('is disabled without USER_TOKEN', async () => {
+		const response = await SELF.fetch('https://example.com/log-data');
+		expect(response.status).toBe(503);
 	});
 });
